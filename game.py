@@ -5,6 +5,7 @@ from utils import remove_extention
 from screens.startScreen import StartScreen
 from screens.background import Background
 from screens.gameScreen import GameScreen
+from screens.gameOverScreen import GameOver
 from objects.bird import Bird
 
 
@@ -13,10 +14,14 @@ class Game():
         pygame.init()
         self.game_state = None
         self.max_score = 0
+        self.score = 0
+        icon = pygame.image.load("graphics/favicon.ico")
+        pygame.display.set_icon(icon)
         pygame.display.set_caption("Flappy bird")
         self.font = {
             "big": pygame.font.Font("fonts/regular_font.ttf", 70),
-            "regular": pygame.font.Font("fonts/regular_font.ttf", 50)
+            "regular": pygame.font.Font("fonts/regular_font.ttf", 50),
+            "small": pygame.font.Font("fonts/regular_font.ttf", 30)
         }
         self.screen = pygame.display.set_mode((500, 640))
         self.clock = pygame.time.Clock()
@@ -29,20 +34,31 @@ class Game():
 
         self.start_screen = StartScreen(self)
         self.game_screen = GameScreen(self, self.bird_group)
+        self.game_over_screen = GameOver(self)
         self.background = Background(self)
+
+        self.spawn_event = pygame.USEREVENT + 1
+        pygame.time.set_timer(self.spawn_event, 1000)
+
+        self.audio_die = pygame.mixer.Sound("audio/die.wav")
+        theme = pygame.mixer.Sound("audio/theme.mp3")
+        theme.play(-1)
+
 
     def run(self):
         while True:
             self.user_input()
             self.background.animate()
-            self.background.render()
             self.bird_group.update()
+            self.background.render()
             self.bird_group.draw(self.screen)
 
             if self.game_state == None:
                 self.start_screen.run()
                 self.start_screen.render()
-            elif self.game_state:
+            elif self.game_state == False:
+                self.game_over_screen.render()
+            else:
                 self.game_screen.run()
                 self.game_screen.render()
 
@@ -50,8 +66,7 @@ class Game():
             self.clock.tick(60)
 
     def user_input(self):
-        spawn_event = pygame.USEREVENT + 1
-        pygame.time.set_timer(spawn_event, 800)
+
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 pygame.quit()
@@ -61,16 +76,29 @@ class Game():
                     if event.key == pygame.K_SPACE:
                         self.game_state = True
                         self.bird_group.sprite.set_physics(True)
+                        self.bird_group.sprite.reset_pos()
 
             if self.game_state:
-                if event.type == spawn_event:
+                if event.type == self.spawn_event:
                     self.game_screen.spawn()
+    
+    def end_game(self, new_score):
+        if self.max_score < new_score:
+            self.max_score = new_score
+        self.score = new_score
+        self.game_state = False
 
     def load_data(self, path):
         data = {}
+        alpha_images = ["yellowbird-downflap", "yellowbird-midflap", "yellowbird-upflap", "gameover"]
         for item in os.listdir(path):
-            data[remove_extention(item)] = pygame.image.load(
-                f"{path}/{item}").convert_alpha()
+            no_extention_name = remove_extention(item)
+            if no_extention_name in alpha_images:
+                data[no_extention_name] = pygame.image.load(
+                    f"{path}/{item}").convert_alpha()
+            else:
+                data[no_extention_name] = pygame.image.load(
+                    f"{path}/{item}").convert()
         return data
 
 

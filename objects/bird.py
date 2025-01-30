@@ -8,8 +8,11 @@ class Bird(pygame.sprite.Sprite):
         self.frames = [pygame.transform.rotozoom(frame, 0, 1.5) for frame in frames]
         self.frame_index = 0
         self.image = self.frames[self.frame_index]
-        self.rect = self.image.get_rect(center=(240, 310))
+        self.original_pos = (240, 310)
+        self.rect = self.image.get_rect(center=self.original_pos)
         self.rotation_degree = 0
+        self.wing_voice = pygame.mixer.Sound("audio/wing.wav")
+        self.wing_voice.set_volume(0.4)
     
     def animate(self):
         self.frame_index += 0.3
@@ -49,7 +52,12 @@ class Bird(pygame.sprite.Sprite):
     def user_inputs(self):
         keys = pygame.key.get_pressed()
         if keys[pygame.K_SPACE] and self.gravity > -2:
-            self.gravity = -15
+            self.gravity = -13
+            self.wing_voice.play()
+        
+    def reset_pos(self):
+        self.rect.center = self.original_pos
+        self.rotation_degree = 0
 
     def update(self):
         self.animate()
