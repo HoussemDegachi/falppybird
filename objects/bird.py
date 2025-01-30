@@ -5,6 +5,7 @@ class Bird(pygame.sprite.Sprite):
         super().__init__()
         self.gravity = 0
         self.physics = False
+        self.controls = False
         self.frames = [pygame.transform.rotozoom(frame, 0, 1.5) for frame in frames]
         self.frame_index = 0
         self.image = self.frames[self.frame_index]
@@ -43,6 +44,9 @@ class Bird(pygame.sprite.Sprite):
     def set_physics(self, new_physics_state):
         self.physics = new_physics_state
 
+    def set_controls(self, new_controls_state):
+        self.controls = new_controls_state
+
     def apply_physics(self):
         self.gravity += 1
         if self.rect.bottom >= 530:
@@ -63,4 +67,5 @@ class Bird(pygame.sprite.Sprite):
         self.animate()
         if self.physics:
             self.user_inputs()
+        if self.controls:
             self.apply_physics()
