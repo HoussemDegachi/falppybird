@@ -66,6 +66,6 @@ class Bird(pygame.sprite.Sprite):
     def update(self):
         self.animate()
         if self.physics:
-            self.user_inputs()
-        if self.controls:
             self.apply_physics()
+        if self.controls:
+            self.user_inputs()
